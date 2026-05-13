@@ -1,0 +1,10 @@
+.venv
+.env
+.vscode
+
+/files/registro.br/*.json
+
+__pycache__
+*.pyc
+*.pyo
+*.pyd
