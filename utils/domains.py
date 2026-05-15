@@ -1,7 +1,41 @@
 from schemas import Domain, DomainDetail
+import utils.extensions as ext_utils
+def get_domain_name(domain: str) -> str:
+    parts = domain.strip().lstrip(".").split(".")
+    if len(parts) > 0:
+        return parts[0]
+    return domain
+
+def build_domains(domains_raw, preferred_extensions):
+    result = []
+    for raw in domains_raw:
+        ext = ext_utils.get_extension(raw)
+        name = get_domain_name(raw)
+
+        matched_ext = ""
+        for pe in preferred_extensions:
+            if raw.endswith(pe):
+                matched_ext = pe
+                break
+
+        base = raw[:-len(matched_ext)] if matched_ext else name
+        has_numbers = any(ch.isdigit() for ch in name)
+        has_special_chars = ("." in base) or ("-" in base)
+        length = len(base)
+
+        detail = DomainDetail(
+            domain_name=name,
+            extension=ext,
+            length=length,
+            has_numbers=has_numbers,
+            has_special_chars=has_special_chars,
+        )
+        result.append(Domain(domain=raw, detail=detail))
+    return result
 
 
-def separate_domains_with_numbers(domains: list[Domain]):
+
+def numbers_filter(domains: list[Domain]):
     """
     Separa domínios que contêm números dos que não contêm.
     
@@ -11,42 +45,19 @@ def separate_domains_with_numbers(domains: list[Domain]):
     Returns:
         tuple: (domínios_com_números, domínios_sem_números)
     """
-    domains_with_numbers = []
-    domains_without_numbers = []
+    filter_with_numbers = []
+    filter_without_numbers = []
     
     for d in domains:
         if any(char.isdigit() for char in d.domain):
-            domains_with_numbers.append(d)
+            filter_with_numbers.append(d)
         else:
-            domains_without_numbers.append(d)
+            filter_without_numbers.append(d)
     
-    return domains_with_numbers, domains_without_numbers
+    return filter_with_numbers, filter_without_numbers
 
 
-def separate_domains_by_extension(domains: list[Domain], preferred_extensions: list[str]):
-    """
-    Separa domínios que contêm pontos além das extensões preferenciais.
-    
-    Args:
-        domains (list): Lista de domínios
-        preferred_extensions (list): Lista de extensões preferenciais (ex: ['.com.br', '.adv.br'])
-        
-    Returns:
-        tuple: (domínios_com_pontos_extras, domínios_com_extensoes_preferidas)
-    """
-    domains_with_extra_dots = []
-    domains_with_preferred_extensions = []
-    
-    for d in domains:
-        if any(d.domain.endswith(ext) for ext in preferred_extensions):
-            domains_with_preferred_extensions.append(d)
-        else:
-            domains_with_extra_dots.append(d)
-    
-    return domains_with_extra_dots, domains_with_preferred_extensions
-
-
-def separate_domains_by_special_chars(domains: list[Domain], preferred_extensions: list[str]):
+def special_chars_filter(domains: list[Domain], preferred_extensions: list[str]):
     """
     Separa domínios que contêm pontos (.) ou hifens (-) além das extensões preferenciais.
     
@@ -77,7 +88,7 @@ def separate_domains_by_special_chars(domains: list[Domain], preferred_extension
     return domains_with_special_chars, domains_clean
 
 
-def filter_long_domains(domains: list[Domain], preferred_extensions, char_limit):
+def size_filter(domains: list[Domain], preferred_extensions, char_limit):
     """
     Filtra domínios longos recebendo um limite de corte para separar os maiores.
     
@@ -90,8 +101,8 @@ def filter_long_domains(domains: list[Domain], preferred_extensions, char_limit)
         tuple: (domínios_longos_com_tamanho, domínios_curtos_com_tamanho)
             Cada elemento é uma lista de tuplas (domínio, tamanho_sem_extensão)
     """
-    long_domains = []
-    short_domains = []
+    filter_long = []
+    filter_short = []
     
     for d in domains:
         # Remove a extensão preferencial para contar caracteres
@@ -105,13 +116,8 @@ def filter_long_domains(domains: list[Domain], preferred_extensions, char_limit)
         char_count = len(domain_without_ext)
         
         if char_count > char_limit:
-            long_domains.append(Domain(domain=d.domain, detail=DomainDetail(domain=d.domain, extension=ext, length=char_count)))
+            filter_long.append(d)
         else:
-            short_domains.append(Domain(domain=d.domain, detail=DomainDetail(domain=d.domain, extension=ext, length=char_count)))
+            filter_short.append(d)
     
-    return long_domains, short_domains
-
-
-
-
-
+    return filter_long, filter_short

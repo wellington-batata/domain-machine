@@ -10,7 +10,7 @@ class Extensions(BaseModel):
     ignored: list[ExtensionItem]
 
 class DomainDetail(BaseModel):
-    domain: str
+    domain_name: str | None = None
     extension: str | None = None
     length: int | None = None
     has_numbers: bool | None = None
