@@ -5,7 +5,7 @@ from typing import List
 from utils.domains import build_domains, numbers_filter, size_filter, special_chars_filter
 import utils.files as file_utils
 import utils.extensions as ext_utils
-
+import prepare_files as prepare_files
 # from utils.api_processor import process_domains_sync, consolidate_results
 
 load_dotenv()
@@ -20,6 +20,9 @@ if __name__ == "__main__":
 
     domains_file = file_utils.read_lines(domains_file)
     preference_ext = file_utils.read_json(preference_file, default=[])
+
+    prepare_files.to_upload(domains_file, "files/batch_dominios.jsonl")
+
 
     # Sistema de mensagem (customizar conforme necessário)
     system_msg = f"""Analise os domínios abaixo e retorne APENAS um JSON array.
