@@ -1,8 +1,7 @@
 from dotenv import load_dotenv
 import os
-from typing import List
 
-from utils.domains import build_domains, numbers_filter, size_filter, special_chars_filter
+from utils.domains import build_domains, numbers_filter, size_filter, special_chars_filter, split_into_batches
 import utils.files as file_utils
 import utils.extensions as ext_utils
 import prepare_files as prepare_files
@@ -15,20 +14,14 @@ if __name__ == "__main__":
     # Caminho do arquivo com os domínios
     domains_file = os.getenv("DOMAIN_LIST_FILE", "domains.txt")
     extensions_file = os.getenv("DOMAIN_EXTENSIONS", "domain_types.json")
-    preference_file = os.getenv("DOMAIN_PREF_EXTENSIONS", "preference.json")
-    domains_size = 16
+    preference_file = os.getenv("DOMAIN_PREF_EXTENSIONS", "files/preference.json")
+    dir_output = os.getenv("DIR_OUTPUT", "files/batches")
+    chunk_size = int(os.getenv("CHUNK_SIZE", 20000))
+    size_domains = 16
 
     domains_file = file_utils.read_lines(domains_file)
+
     preference_ext = file_utils.read_json(preference_file, default=[])
-
-    prepare_files.to_upload(domains_file, "files/batch_dominios.jsonl")
-
-
-    # Sistema de mensagem (customizar conforme necessário)
-    system_msg = f"""Analise os domínios abaixo e retorne APENAS um JSON array.
-                  Para cada domínio, avalie de 0-10: clareza, potencial comercial, memorabilidade.
-                  Formato: [{{"dominio": "...", "nota": 7, "categoria": "ecommerce", "observacao": "..."}}]
-                  Retorne SOMENTE o JSON, sem explicação."""
     
     # Executar processamento
     # Conta as extensões e organiza conforme preferências, salvando em arquivo para evitar reprocessamento
@@ -40,10 +33,10 @@ if __name__ == "__main__":
     # Filtros aplicados sequencialmente para organizar os domínios
     filter_extension = build_domains(domains_file, selected_ext)
     filter_with_numbers, filter_without_numbers = numbers_filter(filter_extension)
-    filter_long, filter_short = size_filter(filter_without_numbers, selected_ext, char_limit=domains_size)
+    filter_long, filter_short = size_filter(filter_without_numbers, selected_ext, char_limit=size_domains)
     domains_with_special_chars, domains_clean = special_chars_filter(filter_short, selected_ext)
     
-    print(f"✓ Domínios longos > {domains_size}: {len(filter_long)}")
+    print(f"✓ Domínios longos > {size_domains}: {len(filter_long)}")
     print(f"✓ Domínios com caracteres especiais: {len(domains_with_special_chars)}")
     print(f"✓ Domínios com números: {len(filter_with_numbers)}")
     print(f"===================================")
@@ -53,18 +46,14 @@ if __name__ == "__main__":
     print(f"✓ Total de domínios para análise: {len(domains_clean)}")
     print(f"")
 
-    # domains_list = [d.domain for d in domains_clean]
+    file_names = []
+    batches = split_into_batches(domains_file, batch_size=chunk_size)
+    for ibatch, batch in enumerate(batches):
+        name_output = f"{dir_output}/{file_utils.generate_filename(f'batch_{ibatch+1}', 'jsonl')}"
+        prepare_files.to_upload(batch, f"{name_output}")
+        file_names.append(name_output)
+    print(f"{len(batches)} Arquivos preparados em: {dir_output}\n")
 
-    # output_dir = "files"
-
-    # api_url = "http://localhost:8000/services"
-    # results = process_domains_sync(
-    #     domains=domains_list,           # lista de dominios
-    #     api_url=api_url,
-    #     batch_size=50,                   # max 50 dominios por chamada
-    #     workers=4,                       # max 4 requisicoes paralelas
-    #     output_dir=output_dir             # diretorio para salvar JSONs
-    # )
-    # # Consolida tudo em um arquivo
-    # consolidated_file = consolidate_results(results, output_dir)
-    # print(f"Resultados consolidados em: {consolidated_file}")
+    for name in file_names: print(f"✓ {name}\n")
+    
+    prepare_files.to_send_batch_openai(file_names)

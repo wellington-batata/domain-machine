@@ -1,3 +1,5 @@
+from ast import List
+from typing import List
 from schemas import Domain, DomainDetail
 import utils.extensions as ext_utils
 def get_domain_name(domain: str) -> str:
@@ -121,3 +123,7 @@ def size_filter(domains: list[Domain], preferred_extensions, char_limit):
             filter_short.append(d)
     
     return filter_long, filter_short
+
+def split_into_batches(domains: List[str], batch_size: int) -> List[List[str]]:
+    """Divide dominios em batches"""
+    return [domains[i:i + batch_size] for i in range(0, len(domains), batch_size)]
