@@ -37,6 +37,7 @@ if __name__ == "__main__":
     dir_output = os.getenv("DIR_OUTPUT", "files/outputs")
     chunk_size = int(os.getenv("CHUNK_SIZE", 20000))
     size_domains = 16
+    time_wait = int(os.getenv("STEP_BY_STEP_TIME_SEC", 60))
 
     domains_file = file_utils.read_lines(domains_file)
 
@@ -77,7 +78,7 @@ if __name__ == "__main__":
     
     if(await_option):
         print("Processando arquivos com OpenAI API ...")
-        to_step_by_step_processing(file_names, interval_check=30)
+        to_step_by_step_processing(file_names, interval_check=time_wait)
     else:
         print("Processamento com OpenAI API no modo bruto!")
         to_send_batch_openai(file_names)

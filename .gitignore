@@ -3,6 +3,10 @@
 .vscode
 
 /files/registro.br/*.json
+/files/batches/*.*
+/files/completed/*.*
+/files/outputs/*.*
+
 
 __pycache__
 *.pyc

@@ -76,6 +76,18 @@ meudominio.adv.br
 python main.py
 ```
 
+Também é possível escolher o modo de processamento via parâmetro ao executar o script:
+
+```bash
+python main.py yes
+python main.py no
+```
+
+Convenção usada no projeto:
+
+- `yes`: executa no modo step-by-step (processa e acompanha lote a lote).
+- `no`: executa no modo batch padrão (envia os arquivos e deixa o processamento assíncrono na API).
+
 O que acontece:
 
 - Os domínios são lidos e analisados.
@@ -94,6 +106,21 @@ python batch_status.py
 Quando o batch estiver `completed`, a saída JSONL será salva em:
 
 - `files/outputs/<batch_id>.jsonl`
+
+## Limites da Batch API (modelo e tier)
+
+A OpenAI Batch API possui limites que variam por modelo e por tier da conta. Esses limites podem restringir, por exemplo, o total de tokens de entrada por arquivo/lote.
+
+Exemplo citado para `gpt-4o`:
+
+- Tier 1: cerca de `90.000` tokens de input por arquivo.
+- Tier 2: cerca de `1.300.000` tokens de input por arquivo.
+
+Importante:
+
+- Esses valores podem mudar ao longo do tempo.
+- Sempre consulte os limites atuais na documentação oficial e/ou no dashboard da OpenAI antes de gerar os JSONL.
+- Se um arquivo exceder o limite do seu tier, divida em arquivos menores para evitar falhas no envio/processamento.
 
 ## Formato de saída
 

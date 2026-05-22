@@ -15,7 +15,7 @@ def read_lines(path: str, skip_comments: bool = True) -> list[str]:
     lines = p.read_text(encoding="utf-8").splitlines()
     if skip_comments:
         lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-    return lines[10000:10300]
+    return lines[10000:10100]
 
 
 def read_json(path: str, default: Any = None) -> Any:

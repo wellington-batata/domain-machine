@@ -5,7 +5,7 @@ from openai import OpenAI
 from typing import List
 from openai import OpenAI
 from schemas import OpenAI_Batch
-from utils import files as file_utils
+from utils import files as file_utils, date_and_time as date_utils
 
 def create_client() -> OpenAI:
     return OpenAI(api_key=os.getenv("API_KEY"))
@@ -70,7 +70,7 @@ def to_send_batch_openai(file_paths: List[str]):
 
 def get_batch_status(client: OpenAI, batch_id: str): 
     batch = client.batches.retrieve(batch_id)
-    print(f"Batch ID: {batch.id} | Status: {batch.status} | Completos: {batch.request_counts.completed}/{batch.request_counts.total}")
+    print(f"{date_utils.log_now()} | Batch ID: {batch.id} | Status: {batch.status} | Completos: {batch.request_counts.completed}/{batch.request_counts.total}")
     return batch
 
 def download_batch_output(client: OpenAI, file_id: str, output_path: str):
@@ -91,7 +91,7 @@ def to_step_by_step_processing(file_paths: List[str], interval_check: int = 30):
     dir_output = os.getenv("DIR_OUTPUT", "files/batches")
     to_process = file_utils.generate_filename("to_process", "jsonl")
     file_utils.write_json(f"{dir_output}/{to_process}", file_paths)
-    
+    error_list = []
     try:
         for path in file_paths:
             print(f"Processando arquivo: {path}")
@@ -100,20 +100,22 @@ def to_step_by_step_processing(file_paths: List[str], interval_check: int = 30):
             while True:
                 
                 batch = get_batch_status(client, batch_obj.batch_id)
-                
+
                 if batch.status == "completed":
                     output_path = f"{dir_output}/output_{os.path.basename(path)}"
-                    download_batch_output(client, batch_obj.file_id, output_path)
+                    download_batch_output(client, batch.output_file_id, output_path)
                     break
                 
-                elif batch.status in ["cancelling"]:
-                    print(f"Batch {batch.id} em cancelamento. Aguardando cancelamento total ...")
-                    time.sleep(interval_check)
-                    continue
+                # elif batch.status in ["cancelling"]:
+                #     print(f"Batch {batch.id} em cancelamento. Aguardando cancelamento total ...")
+                #     time.sleep(interval_check)
+                #     continue
                 
-                elif batch.status in ["failed", "canceled", "expired"]:
+                elif batch.status in ["failed", "cancelled", "expired"]:
                     print(f"Batch {batch.id} com status {batch.status}. Verifique os detalhes na OpenAI Dashboard.")
-                    file_utils.append_jsonl(f"{dir_output}/failed_batches.jsonl", {"batch_id": batch.id, "status": batch.status, "file_path": path})
+                    if batch.id not in error_list:
+                        error_list.append(batch.id)
+                        file_utils.append_jsonl(f"{dir_output}/failed_batches.jsonl", {"batch_id": batch.id, "status": batch.status, "file_path": path})
                     break
                 time.sleep(interval_check)  # Espera o intervalo definido antes de verificar novamente
 
