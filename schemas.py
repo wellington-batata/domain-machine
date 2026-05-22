@@ -19,3 +19,8 @@ class DomainDetail(BaseModel):
 class Domain(BaseModel):
     domain: str
     detail: DomainDetail | None = None
+
+class OpenAI_Batch(BaseModel):
+    batch_id: str
+    file_id: str
+    input_file_id: str

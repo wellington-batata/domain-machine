@@ -1,21 +1,40 @@
 from dotenv import load_dotenv
 import os
+import sys
 
 from utils.domains import build_domains, numbers_filter, size_filter, special_chars_filter, split_into_batches
 import utils.files as file_utils
 import utils.extensions as ext_utils
-import prepare_files as prepare_files
-# from utils.api_processor import process_domains_sync, consolidate_results
+from openai_client import to_send_batch_openai, to_step_by_step_processing
 
 load_dotenv()
     
 if __name__ == "__main__":
+
+    # Receber argumento e opção de await
+    await_option = None
+    if len(sys.argv) > 1:
+        arg = sys.argv[1].lower()
+        if arg in ['yes', 'y']:
+            await_option = True
+        elif arg in ['no', 'n']:
+            await_option = False
+        else:
+            print("Argumento inválido. Use: yes/y ou no/n")
+            sys.exit(1)
+    else:
+        response = input("Processar em step-by-step? (yes/no): ").lower()
+        await_option = response in ['yes', 'y']
+    
+    print(f"Step-by-step option: {await_option}\n")
+    # exit(0)
     
     # Caminho do arquivo com os domínios
     domains_file = os.getenv("DOMAIN_LIST_FILE", "domains.txt")
     extensions_file = os.getenv("DOMAIN_EXTENSIONS", "domain_types.json")
     preference_file = os.getenv("DOMAIN_PREF_EXTENSIONS", "files/preference.json")
-    dir_output = os.getenv("DIR_OUTPUT", "files/batches")
+    dir_batches = os.getenv("DIR_BATCHES", "files/batches")
+    dir_output = os.getenv("DIR_OUTPUT", "files/outputs")
     chunk_size = int(os.getenv("CHUNK_SIZE", 20000))
     size_domains = 16
 
@@ -47,13 +66,18 @@ if __name__ == "__main__":
     print(f"")
 
     file_names = []
-    batches = split_into_batches(domains_file, batch_size=chunk_size)
+    batches = split_into_batches(domains_clean, batch_size=chunk_size)
     for ibatch, batch in enumerate(batches):
-        name_output = f"{dir_output}/{file_utils.generate_filename(f'batch_{ibatch+1}', 'jsonl')}"
-        prepare_files.to_upload(batch, f"{name_output}")
+        name_output = f"{dir_batches}/{file_utils.generate_filename(f'batch_{ibatch+1}', 'jsonl')}"
+        file_utils.to_upload(batch, f"{name_output}")
         file_names.append(name_output)
-    print(f"{len(batches)} Arquivos preparados em: {dir_output}\n")
+    print(f"{len(batches)} Arquivos preparados em: {dir_batches}\n")
 
     for name in file_names: print(f"✓ {name}\n")
     
-    prepare_files.to_send_batch_openai(file_names)
+    if(await_option):
+        print("Processando arquivos com OpenAI API ...")
+        to_step_by_step_processing(file_names, interval_check=30)
+    else:
+        print("Processamento com OpenAI API no modo bruto!")
+        to_send_batch_openai(file_names)

@@ -1,7 +1,12 @@
-from pathlib import Path
 import json
+import prompt_template
+
+from pathlib import Path
 from typing import Any
 from datetime import datetime
+import utils.files as file_utils
+import utils.domains as domain_utils
+from schemas import Domain
 
 def read_lines(path: str, skip_comments: bool = True) -> list[str]:
     p = Path(path)
@@ -10,7 +15,7 @@ def read_lines(path: str, skip_comments: bool = True) -> list[str]:
     lines = p.read_text(encoding="utf-8").splitlines()
     if skip_comments:
         lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-    return lines
+    return lines[10000:10300]
 
 
 def read_json(path: str, default: Any = None) -> Any:
@@ -58,5 +63,35 @@ def generate_filename(prefix: str, extension: str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d%H%M")
     return f"{prefix}_{timestamp}.{extension}"
 
-
-
+def to_upload(domains: list[Domain], output_dir: str):
+    """
+    Prepara os domínios para upload em batch.
+    Args:        
+        domains: Lista de domínios a serem processados.
+        output_dir: Diretório onde os arquivos organizados por extensão serão salvos.
+    output:
+        Cria arquivos organizados por extensão e um arquivo batch_dominios.jsonl para upload
+    """
+    for d in domains:
+        domain_name = domain_utils.get_domain_name(d.domain);
+        jsonline = {
+            #"custom_id": f"domain-{uuid.uuid4().hex[:8]}",  # ID único para mapear depois
+            "custom_id": d.domain,  # ID usando o próprio domínio para facilitar mapeamento
+            "method": "POST",
+            "url": "/v1/chat/completions",
+            "body": {
+                "model": "gpt-4o-2024-11-20",
+                "max_tokens": 200,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": f"{prompt_template.get_system_prompt_domains()}"
+                    },
+                    {
+                        "role": "user",
+                        "content": f"{prompt_template.get_user_prompt_domain(d.domain, len(domain_name))}"
+                    }
+                ]
+            }
+        }
+        file_utils.append_jsonl(f"{output_dir}", jsonline)
