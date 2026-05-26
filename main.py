@@ -25,6 +25,11 @@ if __name__ == "__main__":
     else:
         response = input("Processar em step-by-step? (yes/no): ").lower()
         await_option = response in ['yes', 'y']
+
+    start_line = None
+    if len(sys.argv) > 2:
+        start_line = int(sys.argv[2])
+
     
     print(f"Step-by-step option: {await_option}\n")
     # exit(0)

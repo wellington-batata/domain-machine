@@ -8,14 +8,16 @@ import utils.files as file_utils
 import utils.domains as domain_utils
 from schemas import Domain
 
-def read_lines(path: str, skip_comments: bool = True) -> list[str]:
+def read_lines(path: str, skip_comments: bool = True, start_line: int = 0) -> list[str]:
     p = Path(path)
     if not p.is_file():
         return []
     lines = p.read_text(encoding="utf-8").splitlines()
     if skip_comments:
         lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith("#")]
-    return lines[10000:10100]
+    if start_line > 0:
+        return lines[start_line:]
+    return lines
 
 
 def read_json(path: str, default: Any = None) -> Any:
