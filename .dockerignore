@@ -1,0 +1,14 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+files/batches
+files/outputs
+files/completed
+results
+.env
+.vscode

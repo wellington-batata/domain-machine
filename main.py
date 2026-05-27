@@ -23,8 +23,8 @@ if __name__ == "__main__":
             print("Argumento inválido. Use: yes/y ou no/n")
             sys.exit(1)
     else:
-        response = input("Processar em step-by-step? (yes/no): ").lower()
-        await_option = response in ['yes', 'y']
+        response = input("Processar em step-by-step? (yes/no): ")
+        await_option = response in ['yes', 'y', 'Yes', 'YES', 'Y']
 
     start_line = None
     if len(sys.argv) > 2:

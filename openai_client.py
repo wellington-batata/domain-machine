@@ -8,7 +8,10 @@ from schemas import OpenAI_Batch
 from utils import files as file_utils, date_and_time as date_utils
 
 def create_client() -> OpenAI:
-    return OpenAI(api_key=os.getenv("API_KEY"))
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
+    if not api_key:
+        raise ValueError("Defina OPENAI_API_KEY (ou API_KEY) no ambiente.")
+    return OpenAI(api_key=api_key)
 
 def send_one_batch(client: OpenAI, file_path: str):
     with open(file_path, "rb") as f:
