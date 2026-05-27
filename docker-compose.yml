@@ -1,0 +1,45 @@
+services:
+  domains-batch:
+    image: domains-batch:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: domains-batch
+    env_file:
+      - .env
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      API_KEY: ${API_KEY:-}
+      CHUNK_SIZE: ${CHUNK_SIZE:-100}
+      STEP_BY_STEP_TIME_SEC: ${STEP_BY_STEP_TIME_SEC:-60}
+      DOMAIN_EXTENSIONS: ${DOMAIN_EXTENSIONS:-files/registro.br/extensions_20260408_20260415.json}
+      DOMAIN_LIST_FILE: ${DOMAIN_LIST_FILE:-files/registro.br/domains_20260408_20260415.txt}
+      DOMAIN_PREF_EXTENSIONS: ${DOMAIN_PREF_EXTENSIONS:-files/preferences.json}
+      DIR_BATCHES: ${DIR_BATCHES:-files/batches}
+      DIR_OUTPUT: ${DIR_OUTPUT:-files/outputs}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./files:/app/files
+      - ./results:/app/results
+      - ./all_extensions.json:/app/all_extensions.json
+    command: ["python", "main.py", "yes"]
+
+  batch-status:
+    image: domains-batch-status:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: domains-batch-status
+    profiles: ["status"]
+    env_file:
+      - .env
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      API_KEY: ${API_KEY:-}
+      BATCH_IDS: ${BATCH_IDS:-}
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      - ./files:/app/files
+      - ./results:/app/results
+      - ./all_extensions.json:/app/all_extensions.json
+    command: ["python", "batch_status.py"]

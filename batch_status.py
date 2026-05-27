@@ -1,10 +1,14 @@
 from dotenv import load_dotenv
 import os
 
-import prepare_files as prepare_files
+import openai_client
 
 load_dotenv()
 
-files_list = ['batch_6a0e4e03c0448190989efa410cc23914']
+raw_batch_ids = os.getenv("BATCH_IDS", "")
+files_list = [batch_id.strip() for batch_id in raw_batch_ids.split(",") if batch_id.strip()]
 
-prepare_files.to_check_status_batch_openai(files_list)
+if not files_list:
+	raise ValueError("Defina BATCH_IDS no ambiente com IDs separados por vírgula.")
+
+openai_client.to_check_status_batch_openai(files_list)

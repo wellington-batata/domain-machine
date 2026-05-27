@@ -144,6 +144,67 @@ Esse campo normalmente contém uma string JSON gerada pelo modelo.
 - Arquivo de saída vazio
   - Verifique se o batch está `completed` e se possui `output_file_id`.
 
+## Executar com Docker Compose (VPS)
+
+Arquivos criados para containerização:
+
+- `Dockerfile`
+- `docker-compose.yml`
+- `.dockerignore`
+
+### 1) Configurar ambiente
+
+Crie/edite o arquivo `.env` com base no `.env.example` e informe ao menos:
+
+```env
+OPENAI_API_KEY=sua_openai_api_key
+CHUNK_SIZE=100
+STEP_BY_STEP_TIME_SEC=60
+DOMAIN_EXTENSIONS="files/registro.br/extensions_20260408_20260415.json"
+DOMAIN_LIST_FILE="files/registro.br/domains_20260408_20260415.txt"
+DOMAIN_PREF_EXTENSIONS="files/preferences.json"
+DIR_BATCHES="files/batches"
+DIR_OUTPUT="files/outputs"
+TZ=America/Sao_Paulo
+```
+
+### 2) Build da imagem
+
+```bash
+docker compose build
+```
+
+### 3) Rodar geração/envio de batches
+
+```bash
+docker compose run --rm domains-batch
+```
+
+O serviço usa volume para persistência em disco da VPS:
+
+- `./files:/app/files`
+- `./results:/app/results`
+- `./all_extensions.json:/app/all_extensions.json`
+
+### 4) Consultar status e baixar saídas
+
+Defina no `.env`:
+
+```env
+BATCH_IDS=batch_id_1,batch_id_2
+```
+
+Execute:
+
+```bash
+docker compose --profile status run --rm batch-status
+```
+
+Observações:
+
+- Não é necessário expor portas para OpenAI; o container acessa a API externamente por saída HTTPS padrão.
+- O código aceita `OPENAI_API_KEY` (preferencial) e `API_KEY` (compatibilidade).
+
 ## Licença
 
 Não há arquivo de licença incluído no momento.
