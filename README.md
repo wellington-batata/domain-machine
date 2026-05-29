@@ -48,13 +48,11 @@ CHUNK_SIZE=100
 DOMAIN_EXTENSIONS="files/registro.br/extensions_20260408_20260415.json"
 DOMAIN_LIST_FILE="files/registro.br/domains_20260408_20260415.txt"
 DOMAIN_PREF_EXTENSIONS="files/preferences.json"
-API_URL=http://127.0.0.1:8000/services
 ```
 
 Importante:
 
 - `API_KEY` é obrigatório para chamadas à OpenAI.
-- `API_URL` não é usado no fluxo atual de batch, mas pode permanecer no `.env`.
 
 ## Formato de entrada
 

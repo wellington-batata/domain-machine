@@ -1,7 +1,11 @@
 from ast import List
+import json
 from typing import List
+import utils.prompt_template as prompt_template
 from schemas import Domain, DomainDetail
 import utils.extensions as ext_utils
+import utils.domains as domain_utils
+
 def get_domain_name(domain: str) -> str:
     parts = domain.strip().lstrip(".").split(".")
     if len(parts) > 0:
@@ -127,3 +131,32 @@ def size_filter(domains: list[Domain], preferred_extensions, char_limit):
 def split_into_batches(domains: List[str], batch_size: int) -> List[List[str]]:
     """Divide dominios em batches"""
     return [domains[i:i + batch_size] for i in range(0, len(domains), batch_size)]
+
+
+def domains_to_jsonl(domains: List[Domain]) -> str:
+    lines = []
+
+    for d in domains:
+        domain_name = domain_utils.get_domain_name(d.domain)
+        obj = {
+            "custom_id": d.domain,
+            "method": "POST",
+            "url": "/v1/chat/completions",
+            "body": {
+                "model": "gpt-4o-2024-11-20",
+                "max_tokens": 200,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": prompt_template.get_system_prompt_domains()
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt_template.get_user_prompt_domain(d.domain, len(domain_name))
+                    }
+                ]
+            }
+        }
+        lines.append(json.dumps(obj, ensure_ascii=False))
+    
+    return "\n".join(lines) + "\n"

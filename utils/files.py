@@ -1,5 +1,5 @@
 import json
-import prompt_template
+import utils.prompt_template as prompt_template
 
 from pathlib import Path
 from typing import Any
@@ -7,6 +7,7 @@ from datetime import datetime
 import utils.files as file_utils
 import utils.domains as domain_utils
 from schemas import Domain
+from itertools import islice
 
 def read_lines(path: str, skip_comments: bool = True, start_line: int = 0) -> list[str]:
     p = Path(path)
@@ -18,6 +19,23 @@ def read_lines(path: str, skip_comments: bool = True, start_line: int = 0) -> li
     if start_line > 0:
         return lines[start_line:]
     return lines
+
+
+def read_lines_slice(path: str, start_line: int, num_lines: int) -> list[str]:
+    """
+    Lê um número específico de linhas do arquivo usando islice.
+    Args:
+        path: Caminho do arquivo
+        start_line: Linha inicial para leitura
+        num_lines: Número de linhas a ler
+    Returns:
+        Lista com as linhas lidas
+    """
+    p = Path(path)
+    if not p.is_file():
+        return []
+    lines = p.read_text(encoding="utf-8").splitlines()
+    return list(islice(lines, start_line, start_line + num_lines))
 
 
 def read_json(path: str, default: Any = None) -> Any:
@@ -97,3 +115,4 @@ def to_upload(domains: list[Domain], output_dir: str):
             }
         }
         file_utils.append_jsonl(f"{output_dir}", jsonline)
+

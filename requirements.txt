@@ -3,6 +3,7 @@ aiohttp==3.13.5
 aiosignal==1.4.0
 annotated-types==0.7.0
 attrs==26.1.0
+boto3==1.40.67
 dotenv==0.9.9
 frozenlist==1.8.0
 idna==3.14
