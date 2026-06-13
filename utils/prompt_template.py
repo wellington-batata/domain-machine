@@ -38,6 +38,10 @@ def get_system_prompt_domains() -> str:
                         7. IDENTIDADE
                         O domínio representa claramente quem é o titular ou o serviço oferecido?
 
+                        8. CATEGORIA
+                        O domínio se encaixa claramente em uma categoria de negócio ou setor específico?
+                        exemplo: saúde, educação, tecnologia, finanças, jogos, pets, etc. Se sim, qual?
+
                         FORMATO DE SAÍDA — retorne exatamente esta estrutura para cada domínio:
 
                         {{
@@ -50,6 +54,7 @@ def get_system_prompt_domains() -> str:
                             "no_ambiguity": <true ou false>,
                             "no_gemination": <true ou false>,
                             "clear_identity": <true ou false>,
+                            "category": <categoria ou setor identificado, ou null se não for possível identificar>,
                             "description": "<justificativa curta em português>"
                         }}"""
 

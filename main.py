@@ -2,7 +2,7 @@ import sys, os
 import utils.files as file_utils
 import utils.date_and_time as date_utils
 import aws_files as aws_utils
-import process_batch as executor_batch
+import process_batch as process_batch_upload
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -32,9 +32,10 @@ def re_process(bucket_name, file_key):
       lines = file_utils.read_lines_slice(domains_file, start_line=0, num_lines=1)
       date_of_file = date_utils.extract_date_registrobr(lines[0])
       ## TODO: MUDAR FUNÇÃO DEPOIS DOS TESTES
-      domains_list = file_utils.read_lines_slice(domains_file, start_line=10000, num_lines=350)
+      domains_list = file_utils.read_lines(domains_file, start_line=0, skip_comments=True)
       print(f"Data extraída do arquivo: {date_of_file} | Total de domínios: {len(domains_list)}")
-      executor_batch.process_batch(domains_list, bucket_name, date_of_file)
+      
+      process_batch_upload.process_batch_upload(domains_list, bucket_name, date_of_file)
 
 if __name__ == "__main__":
     main()

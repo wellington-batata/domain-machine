@@ -94,13 +94,12 @@ def special_chars_filter(domains: list[Domain], preferred_extensions: list[str])
     return domains_with_special_chars, domains_clean
 
 
-def size_filter(domains: list[Domain], preferred_extensions, char_limit):
+def size_filter(domains: list[Domain], char_limit):
     """
     Filtra domínios longos recebendo um limite de corte para separar os maiores.
     
     Args:
         domains (list): Lista de domínios
-        preferred_extensions (list): Lista de extensões preferenciais (ex: ['.com.br', '.adv.br'])
         char_limit (int): Limite de caracteres para considerar um domínio como longo
         
     Returns:
@@ -112,11 +111,12 @@ def size_filter(domains: list[Domain], preferred_extensions, char_limit):
     
     for d in domains:
         # Remove a extensão preferencial para contar caracteres
-        domain_without_ext = d.domain
-        for ext in preferred_extensions:
-            if d.domain.endswith(ext):
-                domain_without_ext = d.domain[:-len(ext)]
-                break
+        domain_without_ext = d.domain.split('.')[0]  # Pega a parte antes do primeiro ponto por segurança
+        # for ext in preferred_extensions:
+        #     if d.domain.endswith(ext):
+        #         domain_without_ext = d.domain[:-len(ext)]
+
+        #         break
         
         # Conta caracteres sem a extensão
         char_count = len(domain_without_ext)
